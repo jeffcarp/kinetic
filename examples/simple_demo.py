@@ -9,7 +9,7 @@ import numpy as np
 import kinetic
 
 
-@kinetic.run(accelerator="l4")
+@kinetic.run(accelerator="v5litepod-1")
 def train_keras_jax_model():
   print(f"Keras version: {keras.__version__}")
   print(f"Keras backend: {keras.config.backend()}")

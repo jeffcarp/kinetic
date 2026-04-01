@@ -30,7 +30,7 @@ rich_handler = RichHandler(
   show_level=False,
   markup=True,
 )
-rich_handler.setFormatter(python_logging.Formatter("[dim]%(message)s[/dim]"))
+
 
 absl_logger = logging.get_absl_logger()
 absl_logger.handlers = [rich_handler]
