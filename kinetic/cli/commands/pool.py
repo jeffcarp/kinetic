@@ -25,8 +25,8 @@ def pool():
 @click.option(
   "--accelerator",
   required=True,
-  help="Accelerator spec: t4, l4, a100, a100-80gb, h100, "
-  "v5litepod, v5p, v6e, v3 (with optional count/topology)",
+  help="Accelerator spec: gpu-t4, gpu-l4, gpu-a100, gpu-a100-80gb, gpu-h100, "
+  "tpu-v5e, tpu-v5p, tpu-v6e, tpu-v3 (with optional count/topology)",
 )
 @click.option(
   "--min-nodes",

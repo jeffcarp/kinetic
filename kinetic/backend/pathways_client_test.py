@@ -249,7 +249,7 @@ class TestSubmitPathwaysJob(absltest.TestCase):
     defaults = {
       "display_name": "my-job",
       "container_uri": "img:tag",
-      "accelerator": "v5litepod-4",
+      "accelerator": "v5e-4",
       "project": "proj",
       "job_id": "j1",
       "bucket_name": "bkt",
@@ -269,8 +269,8 @@ class TestSubmitPathwaysJob(absltest.TestCase):
     self.assertEqual(body["spec"]["leaderWorkerTemplate"]["size"], 4)
 
   def test_single_node_tpu(self):
-    # v5litepod-4 → 1 node → 0 workers
-    self._call(accelerator="v5litepod-4")
+    # v5e-4 → 1 node → 0 workers
+    self._call(accelerator="v5e-4")
     body = self._get_created_body()
     self.assertEqual(body["spec"]["leaderWorkerTemplate"]["size"], 1)
 

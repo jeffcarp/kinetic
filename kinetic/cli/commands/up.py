@@ -31,8 +31,8 @@ from kinetic.core.accelerators import GpuConfig, generate_pool_name
 @click.option(
   "--accelerator",
   default=None,
-  help="Accelerator spec: cpu, t4, l4, a100, a100-80gb, h100, "
-  "v5litepod, v5p, v6e, v3",
+  help="Accelerator spec: cpu, gpu-t4, gpu-l4, gpu-a100, gpu-a100-80gb, gpu-h100, "
+  "tpu-v5e, tpu-v5p, tpu-v6e, tpu-v3",
 )
 @click.option(
   "--min-nodes",

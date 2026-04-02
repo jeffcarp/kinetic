@@ -43,7 +43,7 @@ For training scripts with hardcoded paths, use the `volumes` parameter. This mou
 from kinetic import Data
 
 @kinetic.run(
-    accelerator="v5e-4",
+    accelerator="tpu-v5e-4",
     volumes={"/data": Data("./dataset/")}
 )
 def train():

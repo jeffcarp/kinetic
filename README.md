@@ -8,14 +8,14 @@ Run Keras and JAX workloads on cloud TPUs and GPUs with a simple decorator. No i
 ```python
 import kinetic
 
-@kinetic.run(accelerator="v5e-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def train_model():
     import keras
     model = keras.Sequential([...])
     model.fit(x_train, y_train)
     return model.history.history["loss"][-1]
 
-# Executes on TPU v5e-1, returns the result
+# Executes on TPU tpu-v5e-1, returns the result
 final_loss = train_model()
 ```
 
@@ -100,7 +100,7 @@ This interactively prompts for your GCP project and accelerator type, then:
 You can also run non-interactively:
 
 ```bash
-kinetic up --project=my-project --accelerator=t4 --yes
+kinetic up --project=my-project --accelerator=gpu-t4 --yes
 ```
 
 > **Cleanup reminder:** When you're done, run `kinetic down` to tear down all resources and avoid ongoing charges. See [CLI Commands](#cli-commands).
@@ -120,7 +120,7 @@ Add this to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist it. Se
 ```python
 import kinetic
 
-@kinetic.run(accelerator="v5e-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def hello_tpu():
     import jax
     return f"Running on {jax.devices()}"
@@ -138,7 +138,7 @@ print(result)
 ```python
 import kinetic
 
-@kinetic.run(accelerator="v5e-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def train_model():
     import keras
     import numpy as np
@@ -171,7 +171,7 @@ The two decorators accept the same parameters, so switching between them is a on
 import kinetic
 import time
 
-@kinetic.submit(accelerator="v5e-1")
+@kinetic.submit(accelerator="tpu-v5e-1")
 def train_model():
     time.sleep(60)
     return {"loss": 0.1}
@@ -180,7 +180,7 @@ def train_model():
 job = train_model()
 print(job.job_id)       # e.g. "job-a1b2c3d4"
 print(job.func_name)    # "train_model"
-print(job.accelerator)  # "v6e-8"
+print(job.accelerator)  # "tpu-v6e-8"
 ```
 
 #### Monitoring Status and Logs
@@ -301,7 +301,7 @@ import pandas as pd
 import kinetic
 from kinetic import Data
 
-@kinetic.run(accelerator="v5e-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def train(data_dir):
     # data_dir is resolved to a local path on the remote machine
     df = pd.read_csv(f"{data_dir}/train.csv")
@@ -328,7 +328,7 @@ import kinetic
 from kinetic import Data
 
 @kinetic.run(
-    accelerator="v5e-1",
+    accelerator="tpu-v5e-1",
     volumes={
         "/data": Data("./my_dataset/"),
         "/weights": Data("gs://my-bucket/pretrained-weights/")
@@ -352,7 +352,7 @@ If your dataset is very large (e.g., > 10GB), it is inefficient to download the 
 import grain.python as grain
 import kinetic
 
-@kinetic.run(accelerator="v5e-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def train(data_uri):
     # Native GCS reading, no download overhead
     data_source = grain.ArrayRecordDataSource(data_uri)
@@ -394,7 +394,7 @@ Skip container build time by using prebuilt images:
 
 ```python
 @kinetic.run(
-    accelerator="v5e-1",
+    accelerator="tpu-v5e-1",
     container_image="us-docker.pkg.dev/my-project/kinetic/prebuilt:v1.0"
 )
 def train():
@@ -411,7 +411,7 @@ Use `capture_env_vars` to propagate local environment variables to the remote po
 import kinetic
 
 @kinetic.run(
-    accelerator="v5litepod-1",
+    accelerator="tpu-v5e-1",
     capture_env_vars=["KAGGLE_*", "GOOGLE_CLOUD_*"]
 )
 def train_gemma():
@@ -428,7 +428,7 @@ This is useful for forwarding API keys, credentials, or configuration without ha
 Multi-host TPU configurations (those requiring more than one node, such as `v2-16`, `v3-32`, or `v5p-16`) automatically use the [Pathways](https://cloud.google.com/tpu/docs/pathways-overview) backend. You can also set the backend explicitly:
 
 ```python
-@kinetic.run(accelerator="v3-32", backend="pathways")
+@kinetic.run(accelerator="tpu-v3-32", backend="pathways")
 def distributed_train():
     ...
 ```
@@ -441,23 +441,23 @@ You can run multiple independent clusters within the same GCP project — for ex
 
 ```bash
 # Default cluster (named "kinetic-cluster")
-kinetic up --project=my-project --accelerator=v5e-1
+kinetic up --project=my-project --accelerator=tpu-v5e-1
 
 # A separate GPU cluster
-kinetic up --project=my-project --cluster=gpu-cluster --accelerator=a100
+kinetic up --project=my-project --cluster=gpu-cluster --accelerator=gpu-a100
 ```
 
 **Target a cluster** in your code with the `cluster` parameter or the `KINETIC_CLUSTER` environment variable:
 
 ```python
 # Run on the GPU cluster
-@kinetic.run(accelerator="a100", cluster="gpu-cluster")
+@kinetic.run(accelerator="gpu-a100", cluster="gpu-cluster")
 def train_on_gpu():
     ...
 
 # Or set the env var to avoid repeating the cluster name
 # export KINETIC_CLUSTER="gpu-cluster"
-@kinetic.run(accelerator="a100")
+@kinetic.run(accelerator="gpu-a100")
 def train_on_gpu():
     ...
 ```
@@ -466,7 +466,7 @@ All CLI commands accept `--cluster` as well, so you can manage each cluster inde
 
 ```bash
 kinetic status --cluster=gpu-cluster
-kinetic pool add --cluster=gpu-cluster --accelerator=h100
+kinetic pool add --cluster=gpu-cluster --accelerator=gpu-h100
 kinetic down --cluster=gpu-cluster
 ```
 
@@ -492,7 +492,7 @@ Kinetic uses `absl-py` for logging. Set `KINETIC_LOG_LEVEL=DEBUG` for verbose ou
 
 ```python
 @kinetic.run(
-    accelerator="v5e-1",       # TPU/GPU type (default: "v5e-1")
+    accelerator="tpu-v5e-1",       # TPU/GPU type (default: "tpu-v5e-1")
     container_image=None,      # Custom container URI
     zone=None,                 # Override default zone
     project=None,              # Override default project
@@ -512,26 +512,26 @@ Each accelerator and topology requires [setting up its own node pool](#kinetic-p
 
 | Type           | Configurations                                                                                                                |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| TPU v3         | `v3-4`, `v3-16`, `v3-32`, `v3-64`, `v3-128`, `v3-256`, `v3-512`, `v3-1024`, `v3-2048`                                         |
-| TPU v4         | `v4-4`, `v4-8`, `v4-16`, `v4-32`, `v4-64`, `v4-128`, `v4-256`, `v4-512`, `v4-1024`, `v4-2048`, `v4-4096`                      |
-| TPU v5 Litepod | `v5litepod-1`, `v5litepod-4`, `v5litepod-8`, `v5litepod-16`, `v5litepod-32`, `v5litepod-64`, `v5litepod-128`, `v5litepod-256` |
-| TPU v5p        | `v5p-8`, `v5p-16`, `v5p-32`                                                                                                   |
-| TPU v6e        | `v6e-8`, `v6e-16`                                                                                                             |
+| TPU v3         | `tpu-v3-4`, `tpu-v3-16`, `tpu-v3-32`, `tpu-v3-64`, `tpu-v3-128`, `tpu-v3-256`, `tpu-v3-512`, `tpu-v3-1024`, `tpu-v3-2048`                                         |
+| TPU v4         | `tpu-v4-4`, `tpu-v4-8`, `tpu-v4-16`, `tpu-v4-32`, `tpu-v4-64`, `tpu-v4-128`, `tpu-v4-256`, `tpu-v4-512`, `tpu-v4-1024`, `tpu-v4-2048`, `tpu-v4-4096`                      |
+| TPU v5 Litepod | `tpu-v5e-1`, `tpu-v5e-4`, `tpu-v5e-8`, `tpu-v5e-16`, `tpu-v5e-32`, `tpu-v5e-64`, `tpu-v5e-128`, `tpu-v5e-256` |
+| TPU v5p        | `tpu-v5p-8`, `tpu-v5p-16`, `tpu-v5p-32`                                                                                                   |
+| TPU v6e        | `tpu-v6e-8`, `tpu-v6e-16`                                                                                                             |
 
 #### GPUs
 
 | Type             | Aliases                         | Multi-GPU Counts |
 | ---------------- | ------------------------------- | ---------------- |
-| NVIDIA T4        | `t4`, `nvidia-tesla-t4`         | 1, 2, 4          |
-| NVIDIA L4        | `l4`, `nvidia-l4`               | 1, 2, 4, 8       |
-| NVIDIA V100      | `v100`, `nvidia-tesla-v100`     | 1, 2, 4, 8       |
-| NVIDIA A100      | `a100`, `nvidia-tesla-a100`     | 1, 2, 4, 8, 16   |
-| NVIDIA A100 80GB | `a100-80gb`, `nvidia-a100-80gb` | 1, 2, 4, 8, 16   |
-| NVIDIA H100      | `h100`, `nvidia-h100-80gb`      | 1, 2, 4, 8       |
-| NVIDIA P4        | `p4`, `nvidia-tesla-p4`         | 1, 2, 4          |
-| NVIDIA P100      | `p100`, `nvidia-tesla-p100`     | 1, 2, 4          |
+| NVIDIA T4        | `gpu-t4`, `gpu-nvidia-tesla-t4`         | 1, 2, 4          |
+| NVIDIA L4        | `gpu-l4`, `gpu-nvidia-l4`               | 1, 2, 4, 8       |
+| NVIDIA V100      | `gpu-v100`, `gpu-nvidia-tesla-v100`     | 1, 2, 4, 8       |
+| NVIDIA A100      | `gpu-a100`, `gpu-nvidia-tesla-a100`     | 1, 2, 4, 8, 16   |
+| NVIDIA A100 80GB | `gpu-a100-80gb`, `gpu-nvidia-a100-80gb` | 1, 2, 4, 8, 16   |
+| NVIDIA H100      | `gpu-h100`, `gpu-nvidia-h100-80gb`      | 1, 2, 4, 8       |
+| NVIDIA P4        | `gpu-p4`, `gpu-nvidia-tesla-p4`         | 1, 2, 4          |
+| NVIDIA P100      | `gpu-p100`, `gpu-nvidia-tesla-p100`     | 1, 2, 4          |
 
-For multi-GPU configurations on GKE, append the count: `a100x4`, `l4x2`, etc.
+For multi-GPU configurations on GKE, append the count: `gpu-a100x4`, `gpu-l4x2`, etc.
 
 #### CPU
 
@@ -547,7 +547,7 @@ Provision all required cloud resources (one-time setup):
 
 ```bash
 kinetic up
-kinetic up --project=my-project --accelerator=t4 --yes
+kinetic up --project=my-project --accelerator=gpu-t4 --yes
 ```
 
 #### `kinetic down`
@@ -583,7 +583,7 @@ Manage accelerator node pools after initial setup:
 
 ```bash
 # Add a node pool for a specific accelerator
-kinetic pool add --accelerator=v5e-1
+kinetic pool add --accelerator=tpu-v5e-1
 
 # List current node pools
 kinetic pool list

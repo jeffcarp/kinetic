@@ -53,14 +53,14 @@ management required.
 
     import kinetic
 
-    @kinetic.run(accelerator="v6e-8")
+    @kinetic.run(accelerator="tpu-v6e-8")
     def train_model():
         import keras
         model = keras.Sequential([...])
         model.fit(x_train, y_train)
         return model.history.history["loss"][-1]
 
-    # Executes on TPU v6e-8, returns the result
+    # Executes on TPU tpu-v6e-8, returns the result
     final_loss = train_model()
 
 

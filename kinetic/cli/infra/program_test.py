@@ -38,9 +38,9 @@ class TestCreateTpuNodePool(parameterized.TestCase):
       expect_placement=False,
     ),
     dict(
-      testcase_name="v5litepod_single_host",
+      testcase_name="v5e_single_host",
       tpu=TpuConfig(
-        "v5litepod", 4, "2x2", "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 1
+        "v5e", 4, "2x2", "tpu-v5-lite-podslice", "ct5lp-hightpu-4t", 1
       ),
       expect_placement=False,
     ),

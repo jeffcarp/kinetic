@@ -10,7 +10,7 @@ Use the `container_image` parameter in the `@kinetic.run()` or `@kinetic.submit(
 import kinetic
 
 @kinetic.run(
-    accelerator="v6e-8",
+    accelerator="tpu-v6e-8",
     container_image="us-docker.pkg.dev/my-project/kinetic/prebuilt:v1.0"
 )
 def train():

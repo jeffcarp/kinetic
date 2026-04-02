@@ -14,7 +14,7 @@ Use the `--cluster` flag with `kinetic up` to create a named cluster.
 
 ```bash
 # Create a GPU cluster in us-east1-b
-kinetic up --cluster=gpu-cluster --zone=us-east1-b --accelerator=a100
+kinetic up --cluster=gpu-cluster --zone=us-east1-b --accelerator=gpu-a100
 ```
 
 If the `--cluster` flag is omitted, Kinetic uses the default name `kinetic-cluster`.
@@ -26,7 +26,7 @@ You can target a specific cluster from your code using the `cluster` parameter o
 ### Using the Decorator
 
 ```python
-@kinetic.run(accelerator="a100", cluster="gpu-cluster")
+@kinetic.run(accelerator="gpu-a100", cluster="gpu-cluster")
 def train_on_gpu():
     ...
 ```
@@ -48,7 +48,7 @@ All CLI commands accept the `--cluster` flag, allowing you to manage each cluste
 kinetic status --cluster=gpu-cluster
 
 # Add a node pool to a specific cluster
-kinetic pool add --cluster=gpu-cluster --accelerator=h100
+kinetic pool add --cluster=gpu-cluster --accelerator=gpu-h100
 
 # Tear down a specific cluster
 kinetic down --cluster=gpu-cluster

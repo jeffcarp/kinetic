@@ -116,10 +116,10 @@ class TestParseGpuErrors(absltest.TestCase):
 
 
 class TestParseTpuBare(parameterized.TestCase):
-  def test_v5litepod(self):
-    result = parse_accelerator("tpu:v5litepod")
+  def test_v5e(self):
+    result = parse_accelerator("tpu:v5e")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 4)
     self.assertEqual(result.topology, "2x2")
 
@@ -146,23 +146,23 @@ class TestParseTpuChipCount(absltest.TestCase):
     self.assertEqual(result.chips, 32)
     self.assertEqual(result.topology, "4x8")
 
-  def test_v5litepod_1(self):
-    result = parse_accelerator("tpu:v5litepod-1")
+  def test_v5e_1(self):
+    result = parse_accelerator("tpu:v5e-1")
     self.assertIsInstance(result, TpuConfig)
     self.assertEqual(result.chips, 1)
     self.assertEqual(result.topology, "1x1")
 
 
 class TestParseTpuTopology(absltest.TestCase):
-  def test_v5litepod_2x2(self):
-    result = parse_accelerator("tpu:v5litepod-2x2")
+  def test_v5e_2x2(self):
+    result = parse_accelerator("tpu:v5e-2x2")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 4)
     self.assertEqual(result.topology, "2x2")
 
-  def test_v5litepod_1x1(self):
-    result = parse_accelerator("tpu:v5litepod-1x1")
+  def test_v5e_1x1(self):
+    result = parse_accelerator("tpu:v5e-1x1")
     self.assertIsInstance(result, TpuConfig)
     self.assertEqual(result.chips, 1)
     self.assertEqual(result.topology, "1x1")
@@ -174,17 +174,17 @@ class TestParseTpuTopology(absltest.TestCase):
     self.assertEqual(result.chips, 4)
     self.assertEqual(result.topology, "2x2")
 
-  def test_tpu_prefix_v5litepod_2x2(self):
-    result = parse_accelerator("tpu:v5litepod-2x2")
+  def test_tpu_prefix_v5e_2x2(self):
+    result = parse_accelerator("tpu:v5e-2x2")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 4)
     self.assertEqual(result.topology, "2x2")
 
-  def test_tpu_prefix_v5litepod_bare(self):
-    result = parse_accelerator("tpu:v5litepod")
+  def test_tpu_prefix_v5e_bare(self):
+    result = parse_accelerator("tpu:v5e")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 4)
     self.assertEqual(result.topology, "2x2")
 
@@ -194,9 +194,9 @@ class TestParseTpuErrors(absltest.TestCase):
     with self.assertRaisesRegex(ValueError, "not supported"):
       parse_accelerator("tpu:v3-8")
 
-  def test_v5litepod_3x3_invalid_topology(self):
+  def test_v5e_3x3_invalid_topology(self):
     with self.assertRaisesRegex(ValueError, "not supported"):
-      parse_accelerator("tpu:v5litepod-3x3")
+      parse_accelerator("tpu:v5e-3x3")
 
 
 class TestParseTpuConfigFields(absltest.TestCase):
@@ -239,7 +239,7 @@ class TestParseGenericAliases(absltest.TestCase):
   def test_tpu_bare(self):
     result = parse_accelerator("tpu")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 4)
 
   def test_gpu_with_count(self):
@@ -262,16 +262,16 @@ class TestParseGenericAliases(absltest.TestCase):
     self.assertEqual(result.count, 16)
 
   def test_tpu_with_dynamic_count(self):
-    # v5litepod supports up to 256. 4096 should fall back to v4.
+    # v5e supports up to 256. 4096 should fall back to v4.
     result = parse_accelerator("tpu:4096")
     self.assertIsInstance(result, TpuConfig)
     self.assertEqual(result.name, "v4")
     self.assertEqual(result.chips, 4096)
 
-  def test_v5e_alias(self):
-    result = parse_accelerator("tpu:v5e-8")
+  def test_v5litepod_alias(self):
+    result = parse_accelerator("tpu:v5litepod-8")
     self.assertIsInstance(result, TpuConfig)
-    self.assertEqual(result.name, "v5litepod")
+    self.assertEqual(result.name, "v5e")
     self.assertEqual(result.chips, 8)
 
   def test_gpu_unsupported_count(self):
@@ -307,7 +307,7 @@ class TestGetCategory(absltest.TestCase):
     self.assertEqual(get_category("gpu:l4"), "gpu")
 
   def test_tpu(self):
-    self.assertEqual(get_category("tpu:v5litepod"), "tpu")
+    self.assertEqual(get_category("tpu:v5e"), "tpu")
 
 
 class TestGeneratePoolName(absltest.TestCase):
@@ -333,6 +333,44 @@ class TestGeneratePoolName(absltest.TestCase):
     gpu = GpuConfig("l4", 1, "nvidia-l4", "g2-standard-4")
     names = {generate_pool_name(gpu) for _ in range(50)}
     self.assertGreater(len(names), 1)
+
+
+class TestPrefixes(absltest.TestCase):
+  def test_gpu_prefix_hyphen(self):
+    result = parse_accelerator("gpu-l4")
+    self.assertIsInstance(result, GpuConfig)
+    self.assertEqual(result.name, "l4")
+
+  def test_gpu_prefix_hyphen_count(self):
+    result = parse_accelerator("gpu-l4-2")
+    self.assertIsInstance(result, GpuConfig)
+    self.assertEqual(result.name, "l4")
+    self.assertEqual(result.count, 2)
+
+  def test_tpu_prefix_hyphen(self):
+    result = parse_accelerator("tpu-v5e")
+    self.assertIsInstance(result, TpuConfig)
+    self.assertEqual(result.name, "v5e")
+
+  def test_tpu_prefix_hyphen_chips(self):
+    result = parse_accelerator("tpu-v5e-1")
+    self.assertIsInstance(result, TpuConfig)
+    self.assertEqual(result.name, "v5e")
+    self.assertEqual(result.chips, 1)
+
+
+class TestAcceleratorStr(absltest.TestCase):
+  def test_gpu_str(self):
+    accel = parse_accelerator("l4-2")
+    self.assertEqual(accel.accelerator_str, "gpu-l4-2")
+
+  def test_tpu_single_host_str(self):
+    accel = parse_accelerator("v5e-4")
+    self.assertEqual(accel.accelerator_str, "tpu-v5e-4")
+
+  def test_tpu_multi_host_str(self):
+    accel = parse_accelerator("v6e-16")
+    self.assertEqual(accel.accelerator_str, "tpu-v6e-4x4")
 
 
 class TestRegistryIntegrity(absltest.TestCase):

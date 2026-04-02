@@ -98,12 +98,17 @@ class JobContext:
     if not cluster_name:
       cluster_name = get_default_cluster_name()
 
+    accel_config = accelerators.parse_accelerator(accelerator, spot=spot)
+    normalized_accel = (
+      accel_config.accelerator_str if accel_config else "cpu"
+    )
+
     return cls(
       func=func,
       args=args,
       kwargs=kwargs,
       env_vars=env_vars,
-      accelerator=accelerator,
+      accelerator=normalized_accel,
       container_image=container_image,
       zone=zone,
       project=project,

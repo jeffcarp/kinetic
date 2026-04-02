@@ -52,7 +52,7 @@ This interactively prompts for your GCP project and accelerator type, then:
 You can also run non-interactively:
 
 ```bash
-kinetic up --project=my-project --accelerator=t4 --yes
+kinetic up --project=my-project --accelerator=gpu-t4 --yes
 ```
 
 > **Cleanup reminder:** When you're done, run `kinetic down` to tear down all resources and avoid ongoing charges. See [CLI Command here](cli.rst#kinetic-down).
@@ -62,7 +62,7 @@ kinetic up --project=my-project --accelerator=t4 --yes
 ```python
 import kinetic
 
-@kinetic.run(accelerator="v5litepod-1")
+@kinetic.run(accelerator="tpu-v5e-1")
 def hello_tpu():
     import jax
     return f"Running on {jax.devices()}"

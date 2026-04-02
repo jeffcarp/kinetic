@@ -37,7 +37,7 @@ def parse_accelerator(accelerator, spot=False):
 
   if isinstance(parsed, TpuConfig):
     # For TPU Podslices (multi-node), resource requests must be per-node.
-    # num_nodes is 1 for single-host TPUs (v3-8, v4-8, v5litepod-1/4/8).
+    # num_nodes is 1 for single-host TPUs (v3-8, v4-8, v5e-1/4/8).
     chips_per_node = parsed.chips // parsed.num_nodes
     accel_config = {
       "node_selector": {
@@ -175,7 +175,7 @@ def _build_pool_labels(pool: container_v1.NodePool, selector: dict) -> dict:
 
   machine_type = pool_config.machine_type or ""
 
-  # Check resource labels for TPU type (common in v5e/v5litepod)
+  # Check resource labels for TPU type (common in v5e/v5e)
   resource_labels = (
     dict(pool_config.resource_labels) if pool_config.resource_labels else {}
   )

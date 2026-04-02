@@ -139,7 +139,7 @@ def _make_decorator(
 
 
 def run(
-  accelerator: str = "v5e-1",
+  accelerator: str = "tpu-v5e-1",
   container_image: str | None = None,
   zone: str | None = None,
   project: str | None = None,
@@ -153,7 +153,7 @@ def run(
   """Execute function on remote TPU/GPU.
 
   Args:
-    accelerator: TPU/GPU type (e.g., 'v3-8', 'v5litepod-4', 'l4', 'a100')
+    accelerator: TPU/GPU type (e.g., 'tpu-v3-8', 'tpu-v5e-4', 'gpu-l4', 'gpu-a100')
     container_image: Custom container image URI (optional)
     zone: GCP zone (default: from KINETIC_ZONE or 'us-central1-a')
     project: GCP project (default: from KINETIC_PROJECT)
@@ -184,7 +184,7 @@ def run(
 
 
 def submit(
-  accelerator: str = "v5e-1",
+  accelerator: str = "tpu-v5e-1",
   container_image: str | None = None,
   zone: str | None = None,
   project: str | None = None,

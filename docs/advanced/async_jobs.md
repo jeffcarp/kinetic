@@ -9,7 +9,7 @@ Use `@kinetic.submit()` just like `@kinetic.run()`. It accepts the same paramete
 ```python
 import kinetic
 
-@kinetic.submit(accelerator="v5e-1")
+@kinetic.submit(accelerator="tpu-v5e-1")
 def train_model():
     # Long-running training code
     return result

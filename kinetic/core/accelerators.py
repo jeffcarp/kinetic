@@ -20,18 +20,36 @@ class GpuConfig:
   machine_type: str  # "g2-standard-4" — GKE node pool machine type
   spot: bool = False
 
+  @property
+  def accelerator_str(self) -> str:
+    """Returns the canonical string for this accelerator, e.g. 'gpu-l4-1'."""
+    return f"gpu-{self.name}-{self.count}"
+
 
 @dataclass(frozen=True)
 class TpuConfig:
   """Fully resolved TPU accelerator configuration."""
 
-  name: str  # "v5litepod"
+  name: str  # "v5e"
   chips: int  # number of TPU chips (4, 8, …)
   topology: str  # "2x2" — TPU topology string
   gke_accelerator: str  # "tpu-v5-lite-podslice"
   machine_type: str  # "ct5lp-hightpu-4t"
   num_nodes: int  # GKE node pool node count
   spot: bool = False
+
+  @property
+  def accelerator_str(self) -> str:
+    """Returns the canonical string for this accelerator, e.g. 'tpu-v6e-8'."""
+    # Use simple chip count if num_nodes is 1 and it's a standard topology,
+    # otherwise use the full topology string.
+    # Note: v2/v3/v4/v5e usually use chips (e.g. v3-8),
+    # while v5p/v6e slices often use topology (e.g. v6e-2x4).
+    if self.num_nodes == 1:
+      suffix = str(self.chips)
+    else:
+      suffix = self.topology
+    return f"tpu-{self.name}-{suffix}"
 
 
 Accelerator = Union[GpuConfig, TpuConfig, None]
@@ -145,7 +163,7 @@ _GPU_ALIASES: dict[str, str] = {
 #   https://docs.cloud.google.com/kubernetes-engine/docs/concepts/plan-tpus
 # Formula: num_nodes = product(topology_dims) / chips_per_VM
 # Machine-type suffix "-Nt" → N chips per VM (e.g. ct5p-hightpu-4t → 4 chips).
-# v5p uses 3-D topologies (AxBxC); v2, v3, v5litepod, v6e use 2-D (AxB).
+# v5p uses 3-D topologies (AxBxC); v2, v3, v5e, v6e use 2-D (AxB).
 TPUS: dict[str, TpuSpec] = {
   "v3": TpuSpec(
     "tpu-v3-podslice",
@@ -179,7 +197,7 @@ TPUS: dict[str, TpuSpec] = {
       4096: TpuTopologySpec("16x16x16", "ct4p-hightpu-4t", 1024),
     },
   ),
-  "v5litepod": TpuSpec(
+  "v5e": TpuSpec(
     "tpu-v5-lite-podslice",
     4,
     {
@@ -213,18 +231,18 @@ TPUS: dict[str, TpuSpec] = {
 }
 
 _TPU_ALIASES: dict[str, str] = {
-  "v5e": "v5litepod",
+  "v5litepod": "v5e",
 }
 
 
-_MULTI_GPU_RE = re.compile(r"^([^x]+)(?:x)(\d+)$")  # "a100x4"
+_MULTI_GPU_RE = re.compile(r"^(.+?)(?:[x-])(\d+)$")  # "a100x4", "a100-4", "a100-80gb-4"
 _TPU_CHIPS_RE = re.compile(r"^([a-z0-9_]+)-(\d+)$")  # "v3-8"
 _TPU_TOPO_RE = re.compile(
   r"^([a-z0-9_]+)-(\d+x\d+(?:x\d+)?)$"
-)  # "v5litepod-2x2"
+)  # "v5e-2x2"
 
 DEFAULT_GPU = "l4"
-DEFAULT_TPU = "v5litepod"
+DEFAULT_TPU = "v5e"
 
 _PREFERRED_GPUS = [
   "h100",
@@ -236,7 +254,7 @@ _PREFERRED_GPUS = [
   "p100",
   "p4",
 ]
-_PREFERRED_TPUS = ["v6e", "v5p", "v5litepod", "v4", "v3"]
+_PREFERRED_TPUS = ["v6e", "v5p", "v5e", "v4", "v3"]
 
 
 def _resolve_gpu_alias(name: str) -> str:
@@ -257,8 +275,8 @@ def parse_accelerator(accel_str: str, spot: bool = False) -> Accelerator:
       - Dynamic Count: "gpu:4", "tpu:8", "cpu:8" (assigns most capable hardware matching the count)
       - Explicit GPU Name: "gpu:l4", "l4", "gpu:a100-80gb" (resolves to 1 instance of the specified GPU)
       - Multi-GPU Name: "gpu:a100x4", "a100x4", "gpu:l4-2" (resolves to N instances of the specified GPU)
-      - Explicit TPU Name: "tpu:v5litepod", "v5litepod" (resolves to the default topology/chips for the TPU)
-      - Explicit TPU Topology/Chips: "tpu:v3-8", "tpu:v5litepod-2x2", "v3-8" (resolves to the specified TPU slice)
+      - Explicit TPU Name: "tpu:v5e", "v5e" (resolves to the default topology/chips for the TPU)
+      - Explicit TPU Topology/Chips: "tpu:v3-8", "tpu:v5e-2x2", "v3-8" (resolves to the specified TPU slice)
 
   Note: Prefixes ('gpu:' and 'tpu:') are recommended for complete disambiguation but are completely optional.
 
@@ -267,7 +285,7 @@ def parse_accelerator(accel_str: str, spot: bool = False) -> Accelerator:
       dynamically assigns the most capable hardware type that supports the
       requested device count `N`. Hardware is selected based on an internal
       preference hierarchy (e.g., H100 > A100 > L4 for GPUs, and
-      v6e > v5p > v5litepod for TPUs).
+      v6e > v5p > v5e for TPUs).
   """
   s = accel_str.strip().lower()
   if s.endswith(":spot"):
@@ -284,7 +302,7 @@ def parse_accelerator(accel_str: str, spot: bool = False) -> Accelerator:
     return make_tpu(DEFAULT_TPU, TPUS[DEFAULT_TPU].default_chips, spot=spot)
 
   # 1) Try parsing as GPU
-  is_gpu_explicit = s.startswith("gpu:")
+  is_gpu_explicit = s.startswith("gpu:") or s.startswith("gpu-")
   gpu_str = s[4:] if is_gpu_explicit else s
 
   if gpu_str.isdigit():
@@ -314,7 +332,7 @@ def parse_accelerator(accel_str: str, spot: bool = False) -> Accelerator:
     raise ValueError(f"Unknown GPU accelerator: '{accel_str}'")
 
   # 2) Try parsing as TPU
-  is_tpu_explicit = s.startswith("tpu:")
+  is_tpu_explicit = s.startswith("tpu:") or s.startswith("tpu-")
   tpu_str = s[4:] if is_tpu_explicit else s
 
   if tpu_str.isdigit():

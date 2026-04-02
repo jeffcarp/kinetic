@@ -64,8 +64,8 @@ class TestParseAccelerator(absltest.TestCase):
       result["node_selector"]["cloud.google.com/gke-tpu-topology"], "4x4"
     )
 
-  def test_tpu_v5litepod_4(self):
-    result = parse_accelerator("v5litepod-4")
+  def test_tpu_v5e_4(self):
+    result = parse_accelerator("v5e-4")
     self.assertEqual(
       result["node_selector"],
       {
